@@ -64,8 +64,7 @@ int main()
 
 				if (hThread)
 				{
-					//MessageBoxA(NULL, "Inject success", "Success", NULL);
-					VirtualFreeEx(hProcess, allocMemory, NULL, MEM_RELEASE);
+					//VirtualFreeEx(hProcess, allocMemory, NULL, MEM_RELEASE);
 					CloseHandle(hThread);
 					CloseHandle(hProcess);
 				}
