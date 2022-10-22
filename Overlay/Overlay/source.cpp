@@ -133,7 +133,7 @@ void main()
         h = GetSystemMetrics(SM_CYSCREEN);
 
         HWND windowHandle = CreateWindowEx(
-            WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+            WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
             windowClassName,
             NULL,
             WS_POPUP, //borderless
@@ -166,9 +166,9 @@ void main()
 
         MSG messages;
 
-        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
+        /*mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
         Sleep(1);
-        mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
+        mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);*/
 
         Init();
 

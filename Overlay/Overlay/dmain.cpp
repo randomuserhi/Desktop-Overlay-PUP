@@ -14,6 +14,8 @@ Circle buffer[Balls];
 
 void Init()
 {
+	srand(time(NULL));
+
 	for (int i = 0; i < Balls; ++i)
 	{
 		buffer[i].x = frand() * 1920.0f;
@@ -24,7 +26,7 @@ void Init()
 		buffer[i].r = 0; // frand();
 		buffer[i].g = 0; // frand();
 		buffer[i].b = 0; // frand();
-		buffer[i].a = 1; // frand() * 0.5f + 0.5f;
+		buffer[i].a = 1.0f; // frand() * 0.5f + 0.5f;
 
 		buffer[i].radius = frand() * 50.0f + 10.0f;
 	}

