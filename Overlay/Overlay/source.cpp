@@ -114,13 +114,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
 void main()
 {
-    //mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
-    //mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
-
-    /*Hide terminal*/
-    //HWND hWnd = GetConsoleWindow();
-    //ShowWindow(hWnd, SW_HIDE);
-
     while (true)
     {
         running = 1;
@@ -172,6 +165,10 @@ void main()
         resizeSC(w, h);
 
         MSG messages;
+
+        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
+        Sleep(1);
+        mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
 
         Init();
 
