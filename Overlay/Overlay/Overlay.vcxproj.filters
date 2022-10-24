@@ -42,6 +42,9 @@
     <ClCompile Include="dmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inputhook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Deep.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dmain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inputhook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

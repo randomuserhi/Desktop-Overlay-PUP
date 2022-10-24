@@ -2,6 +2,8 @@
 #include "renderer.h"
 #include "dmain.h"
 
+#include "inputhook.h"
+
 int w = 1920;
 int h = 1080;
 
@@ -41,11 +43,42 @@ BOOL Render()
 	glTranslated(0, 0, 0);
 	glScaled(1, 1, 0); // Scales from bottom left, bruh
 
-	for (int i = 0; i < Balls; ++i)
+	/*for (int i = 0; i < Balls; ++i)
 	{
 		glColor4f(buffer[i].r, buffer[i].g, buffer[i].b, buffer[i].a);
 		DrawCircle(buffer[i].x, buffer[i].y, buffer[i].radius);
+	}*/
+
+	glEnable(GL_STENCIL_TEST);
+
+	// Fill stencil buffer with 0's
+	glClearStencil(0);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// Write 1's into stencil buffer where the hole will be
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	glStencilFunc(GL_ALWAYS, 1, ~0);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+	//glColor4f(0, 0, 0, 1);
+	DrawCircle(mouseX, mouseY, breath);
+	for (int i = 0; i < Balls; ++i)
+	{
+		DrawCircle(buffer[i].x, buffer[i].y, buffer[i].radius);
 	}
+
+	// Draw rectangle, masking out fragments with 1's in the stencil buffer
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glStencilFunc(GL_NOTEQUAL, 1, ~0);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	
+	glColor4f(0, 0, 0, 1);
+	DrawCircle(w / 2.0f, h / 2.0f, 5000);
+
+	// Cleanup, if necessary
+	glDisable(GL_STENCIL_TEST);
 
 	glPopMatrix();
 	glFlush();

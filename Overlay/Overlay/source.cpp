@@ -12,8 +12,12 @@
 
 #include "dmain.h"
 #include "renderer.h"
+#include "inputhook.h"
 
 #include <WinUser.h>
+
+#define NOOVERLAY
+#define TRANSPARENTBACKGROUND
 
 HGLRC m_hrc;
 
@@ -91,12 +95,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
     switch (message)
     {
-    case WM_CHAR:
+    /*case WM_CHAR:
         if (wparam == VK_ESCAPE)
         {
             running = 0;
             DestroyWindow(hwnd);
         }
+        return 0;*/
+    case WM_CLOSE: // Prevent Alt-F4
         return 0;
     case WM_DESTROY:
         if (m_hrc)
@@ -107,6 +113,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         running = 0;
         PostQuitMessage(0);
         return 0;
+
+    case WM_NCACTIVATE: // Keep focus (prevent alt-tabbing)
+        return false;
+    case WM_ACTIVATEAPP:
+        if ((bool)wparam == false)
+            return 0;
+        else
+            return DefWindowProc(hwnd, message, wparam, lparam);
+
     default:
         return DefWindowProc(hwnd, message, wparam, lparam);
     }
@@ -114,6 +129,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
 void main()
 {
+    HookInput();
+
     while (true)
     {
         running = 1;
@@ -133,7 +150,7 @@ void main()
         h = GetSystemMetrics(SM_CYSCREEN);
 
         HWND windowHandle = CreateWindowEx(
-            WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+            WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, // Unblocked mouse and keyboard
             windowClassName,
             NULL,
             WS_POPUP, //borderless
@@ -146,6 +163,8 @@ void main()
             NULL,
             NULL);
         ShowWindow(windowHandle, SW_MAXIMIZE);
+
+#if defined(TRANSPARENTBACKGROUND)
         SetLayeredWindowAttributes(windowHandle, 0, 255, LWA_ALPHA);
 
         DWM_BLURBEHIND bb = { 0 };
@@ -156,6 +175,9 @@ void main()
         DwmEnableBlurBehindWindow(windowHandle, &bb);
 
         SetLayeredWindowAttributes(windowHandle, 0, 255, LWA_ALPHA);
+#else
+        SetForegroundWindow(windowHandle);
+#endif
 
         CreateHGLRC(windowHandle);
 

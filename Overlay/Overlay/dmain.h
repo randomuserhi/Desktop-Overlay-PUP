@@ -13,8 +13,10 @@ struct Circle
 	float radius;
 };
 
-#define Balls 10
+#define Balls 20
 extern Circle buffer[];
+
+extern float breath;
 
 void Init();
 void Update(float dt);

@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="Deep_Debug_Memory.cpp" />
     <ClCompile Include="dmain.cpp" />
+    <ClCompile Include="inputhook.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="source.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="Deep_Debug_Memory_Undef.h" />
     <ClInclude Include="Deep_Modules.h" />
     <ClInclude Include="dmain.h" />
+    <ClInclude Include="inputhook.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="source.h" />
   </ItemGroup>

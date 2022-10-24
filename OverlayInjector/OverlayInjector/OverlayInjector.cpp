@@ -3,7 +3,7 @@
 #include <tlhelp32.h>
 #include <string>
 
-//#define DEBUG
+#define DEBUG
 
 std::string ChooseDLL()
 {

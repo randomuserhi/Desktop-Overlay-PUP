@@ -1,4 +1,5 @@
 #include <iostream>
+#include "renderer.h"
 //#include <Eigen/Dense>
 
 #include "Deep.h"
@@ -11,6 +12,7 @@ inline float frand()
 }
 
 Circle buffer[Balls];
+float breath = 500;
 
 void Init()
 {
@@ -18,22 +20,26 @@ void Init()
 
 	for (int i = 0; i < Balls; ++i)
 	{
-		buffer[i].x = frand() * 1920.0f;
-		buffer[i].y = frand() * 1080.0f;
+		buffer[i].x = frand() * w;
+		buffer[i].y = frand() * h;
 		buffer[i].vx = (frand() * 2.0f - 1.0f) * frand() * 1000.0f + 100.0f;
 		buffer[i].vy = (frand() * 2.0f - 1.0f) * frand() * 1000.0f + 100.0f;
 
-		buffer[i].r = 0; // frand();
-		buffer[i].g = 0; // frand();
-		buffer[i].b = 0; // frand();
-		buffer[i].a = 1.0f; // frand() * 0.5f + 0.5f;
+		buffer[i].r = frand();
+		buffer[i].g = frand();
+		buffer[i].b = frand();
+		buffer[i].a = frand() * 0.2f + 0.8f;
 
 		buffer[i].radius = frand() * 50.0f + 10.0f;
 	}
 }
 
+float loop = 0;
 void Update(float dt)
 {
+	breath = 200 + 50 * sin(loop);
+	loop += dt;
+
 	for (int i = 0; i < Balls; ++i)
 	{
 		buffer[i].x += buffer[i].vx * dt;
@@ -44,9 +50,9 @@ void Update(float dt)
 			buffer[i].x = 0;
 			buffer[i].vx *= -1.0f;
 		}
-		else if (buffer[i].x > 1920.0f)
+		else if (buffer[i].x > w)
 		{
-			buffer[i].x = 1920.0f;
+			buffer[i].x = w;
 			buffer[i].vx *= -1.0f;
 		}
 
@@ -55,9 +61,9 @@ void Update(float dt)
 			buffer[i].y = 0;
 			buffer[i].vy *= -1.0f;
 		}
-		else if (buffer[i].y > 1080.0f)
+		else if (buffer[i].y > h)
 		{
-			buffer[i].y = 1080.0f;
+			buffer[i].y = h;
 			buffer[i].vy *= -1.0f;
 		}
 	}
