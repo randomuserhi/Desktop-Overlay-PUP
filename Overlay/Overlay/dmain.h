@@ -11,6 +11,7 @@ struct Circle
 	float b;
 	float a;
 	float radius;
+	float speed;
 };
 
 #define Balls 20

@@ -1,10 +1,12 @@
 #include "inputhook.h"
 #include "renderer.h"
+#include "source.h"
 
-#include <Windows.h>
 #include <tlhelp32.h>
 #include <tchar.h>
 #include <psapi.h>
+
+BOOL kill = TRUE;
 
 int mouseX = 0;
 int mouseY = 0;
@@ -12,10 +14,23 @@ int mouseY = 0;
 HHOOK hKeyboardHook;
 HHOOK hMouseHook;
 
+#define KONAMILENGTH 8
+int konamiCode[] = {
+    VK_UP,
+    VK_UP,
+    VK_DOWN,
+    VK_DOWN,
+    VK_LEFT,
+    VK_RIGHT,
+    VK_LEFT,
+    VK_RIGHT
+};
+int konami = 0;
+
 // https://stackoverflow.com/a/29745310/9642458
 __declspec(dllexport) LRESULT CALLBACK KeyboardEvent(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    /*if (nCode == HC_ACTION)
+    if (nCode == HC_ACTION)
     {
         switch (wParam)
         {
@@ -23,14 +38,28 @@ __declspec(dllexport) LRESULT CALLBACK KeyboardEvent(int nCode, WPARAM wParam, L
         {
             // Get hook struct
             PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
-            if (p->vkCode == VK_SPACE)
+            if (p->vkCode == konamiCode[konami])
+                ++konami;
+            else
+                konami = 0;
+
+            if (konami >= KONAMILENGTH)
             {
-                trap = ~trap;
+                konami = 0;
+                running = !running;
+                if (running) {
+                    ShowWindow(windowHandle, SW_SHOW);
+                    CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)killer, NULL, NULL, NULL);
+                }
+                else
+                {
+                    ShowWindow(windowHandle, SW_HIDE);
+                }
             }
         }
         break;
         }
-    }*/
+    }
 
     //return 1; // Trap keyboard inputs
     return CallNextHookEx(hKeyboardHook, nCode, wParam, lParam); // Allow windows to process keyboard input
@@ -58,7 +87,7 @@ LRESULT WINAPI MouseEvent(int nCode, WPARAM wParam, LPARAM lParam) {
         case WM_MOUSEMOVE:
             return CallNextHookEx(hMouseHook, nCode, wParam, lParam);
 
-        default: 
+        default:
             return 1;
 
         //case WM_LBUTTONUP: {
@@ -85,8 +114,12 @@ LRESULT WINAPI MouseEvent(int nCode, WPARAM wParam, LPARAM lParam) {
 // REALLY NOT-PERFORMANT
 DWORD WINAPI killer(LPVOID lpParm)
 {
-    while (true)
+    while (running)
     {
+        Sleep(10);
+
+        if (!kill) continue;
+
         PROCESSENTRY32 entry;
         entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -110,8 +143,6 @@ DWORD WINAPI killer(LPVOID lpParm)
         } while (Process32Next(snapshot, &entry));
 
         CloseHandle(snapshot);
-
-        Sleep(10);
     }
     return 0;
 }
@@ -133,10 +164,4 @@ DWORD WINAPI hook(LPVOID lpParm)
     UnhookWindowsHookEx(hKeyboardHook);
     UnhookWindowsHookEx(hMouseHook);
     return 0;
-}
-
-void HookInput()
-{
-	HANDLE hThreadHook = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)hook, 0, 0, 0);
-    HANDLE hThreadKill = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)killer, 0, 0, 0);
 }

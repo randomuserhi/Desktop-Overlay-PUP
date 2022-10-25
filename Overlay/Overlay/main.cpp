@@ -3,6 +3,7 @@
 #include <winternl.h>
 
 #include "source.h"
+#include "inputhook.h"
 
 /*
 //#define _CRT_SECURE_NO_WARNINGS
@@ -107,7 +108,9 @@ void StartHook()
 
 	CloseHandle(handle);*/
 
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)main, 0, 0, 0);
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)main, NULL, NULL, NULL); // remove this if you don't want it on auto start
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)hook, NULL, NULL, NULL);
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)killer, NULL, NULL, NULL);
 }
 
 bool __stdcall DllMain(

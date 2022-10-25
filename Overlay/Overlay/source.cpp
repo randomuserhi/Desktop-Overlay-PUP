@@ -2,7 +2,6 @@
 
 #include <chrono>
 
-#include <Windows.h>
 #include <dwmapi.h>
 
 #include <gl/GL.h>
@@ -36,8 +35,8 @@ BOOL initSC() {
     return 0;
 }
 
-void resizeSC(int width, int height) {
-    glViewport(0, 0, width, height);
+void resizeSC(int x, int y, int width, int height) {
+    glViewport(x, y, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
@@ -89,7 +88,7 @@ BOOL CreateHGLRC(HWND hWnd) {
     return TRUE;
 }
 
-int running = 1;
+int running = TRUE;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
@@ -104,13 +103,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         return 0;*/
     case WM_CLOSE: // Prevent Alt-F4
         return 0;
-    case WM_DESTROY:
+    case WM_DESTROY: // TODO:: move this to a seperate unknown command since someone could write code to call WM_DESTROY remotely
         if (m_hrc)
         {
             wglMakeCurrent(NULL, NULL);
             wglDeleteContext(m_hrc);
         }
-        running = 0;
+        running = FALSE;
         PostQuitMessage(0);
         return 0;
 
@@ -127,87 +126,101 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     }
 }
 
-void main()
+HWND windowHandle;
+
+void EndProcess()
 {
-    HookInput();
+    SendMessage(windowHandle, WM_DESTROY, NULL, NULL);
+}
+
+int main()
+{
+    running = TRUE;
+
+    const char* windowClassName = "Overlay";
+    WNDCLASS windowClass = { 0 };
+    windowClass.hbrBackground = (HBRUSH)CreateSolidBrush(0x00000000);
+    windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+    windowClass.hInstance = NULL;
+    windowClass.lpfnWndProc = WndProc;
+    windowClass.lpszClassName = windowClassName;
+    windowClass.style = CS_HREDRAW | CS_VREDRAW;
+    if (!RegisterClass(&windowClass))
+        return 0;
+        //MessageBox(NULL, "Could not register class", "Error", MB_OK);
+
+    w = GetSystemMetrics(SM_CXSCREEN);
+    h = GetSystemMetrics(SM_CYSCREEN);
+
+    // Window size and height is offset by -1 and 1 to prevent windows from assuming full screen causing transparency to be lost
+    // refer to: https://stackoverflow.com/questions/4052940/how-to-make-an-opengl-rendering-context-with-transparent-background#comment33862756_12290229
+    windowHandle = CreateWindowEx(
+        WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, // Unblocked mouse and keyboard
+        windowClassName,
+        NULL,
+        WS_POPUP, //borderless
+        0, //x coordinate of window start point
+        -1, //y start point
+        w, //width of window; this function
+        h + 1, //height of the window
+        NULL, //handles and such, not needed
+        NULL,
+        NULL,
+        NULL);
+    ShowWindow(windowHandle, SW_SHOW);
+
+#if defined(TRANSPARENTBACKGROUND)
+    SetLayeredWindowAttributes(windowHandle, 0x00000000, 255, LWA_ALPHA);
+
+    DWM_BLURBEHIND bb = { 0 };
+    HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
+    bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
+    bb.hRgnBlur = hRgn;
+    bb.fEnable = TRUE;
+    DwmEnableBlurBehindWindow(windowHandle, &bb);
+
+    SetLayeredWindowAttributes(windowHandle, 0x00000000, 255, LWA_ALPHA);
+#else
+    SetForegroundWindow(windowHandle);
+#endif
+
+    CreateHGLRC(windowHandle);
+
+    HDC hdc = GetDC(windowHandle);
+    wglMakeCurrent(hdc, m_hrc);
+    initSC();
+    // offset openGL render viewport due to offset window 
+    resizeSC(0, 1, w, h);
+
+    MSG messages;
+    while (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE)) // clear message queue
+    {
+        TranslateMessage(&messages);
+        DispatchMessage(&messages);
+    }
+
+    /*mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
+    Sleep(1);
+    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);*/
+
+    Init();
+
+    auto prev = std::chrono::high_resolution_clock::now();
+
+    //Deep::StartMemoryDebug();
 
     while (true)
     {
-        running = 1;
-
-        const char* windowClassName = "Window in Console";
-        WNDCLASS windowClass = { 0 };
-        windowClass.hbrBackground = (HBRUSH)CreateSolidBrush(0x00000000);
-        windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-        windowClass.hInstance = NULL;
-        windowClass.lpfnWndProc = WndProc;
-        windowClass.lpszClassName = windowClassName;
-        windowClass.style = CS_HREDRAW | CS_VREDRAW;
-        if (!RegisterClass(&windowClass))
-            MessageBox(NULL, "Could not register class", "Error", MB_OK);
-
-        w = GetSystemMetrics(SM_CXSCREEN);
-        h = GetSystemMetrics(SM_CYSCREEN);
-
-        HWND windowHandle = CreateWindowEx(
-            WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, // Unblocked mouse and keyboard
-            windowClassName,
-            NULL,
-            WS_POPUP, //borderless
-            0, //x coordinate of window start point
-            0, //y start point
-            w, //width of window; this function
-            h, //height of the window
-            NULL, //handles and such, not needed
-            NULL,
-            NULL,
-            NULL);
-        ShowWindow(windowHandle, SW_MAXIMIZE);
-
-#if defined(TRANSPARENTBACKGROUND)
-        SetLayeredWindowAttributes(windowHandle, 0, 255, LWA_ALPHA);
-
-        DWM_BLURBEHIND bb = { 0 };
-        HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
-        bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
-        bb.hRgnBlur = hRgn;
-        bb.fEnable = TRUE;
-        DwmEnableBlurBehindWindow(windowHandle, &bb);
-
-        SetLayeredWindowAttributes(windowHandle, 0, 255, LWA_ALPHA);
-#else
-        SetForegroundWindow(windowHandle);
-#endif
-
-        CreateHGLRC(windowHandle);
-
-        HDC hdc = GetDC(windowHandle);
-        wglMakeCurrent(hdc, m_hrc);
-        initSC();
-        resizeSC(w, h);
-
-        MSG messages;
-
-        /*mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
-        Sleep(1);
-        mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);*/
-
-        Init();
-
-        auto prev = std::chrono::high_resolution_clock::now();
-
-        //Deep::StartMemoryDebug();
-
-        while (running)
-        {
 #include "Deep_Debug_Memory_Undef.h"
-            if (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE))
-            {
-                TranslateMessage(&messages);
-                DispatchMessage(&messages);
-            }
+        if (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&messages);
+            DispatchMessage(&messages);
+        }
 #include "Deep_Debug_Memory_Def.h"
-            else
+        else
+        {
+            if (running)
             {
                 auto now = std::chrono::high_resolution_clock::now();
                 float dt = std::chrono::duration<float, std::milli>(now - prev).count() / 1000.0f;
@@ -218,17 +231,17 @@ void main()
                 Render();
 
                 SwapBuffers(hdc);
-
-                Sleep(10);
             }
+
+            Sleep(10);
         }
-
-        //Deep::PrintAllocationMap();
-        //Deep::EndMemoryDebug();
-
-        ReleaseDC(windowHandle, hdc);
-        DeleteObject(windowHandle); //doing it just in case
-
-        while (IsWindow(windowHandle)) {}
     }
+
+    //Deep::PrintAllocationMap();
+    //Deep::EndMemoryDebug();
+
+    ReleaseDC(windowHandle, hdc);
+    DeleteObject(windowHandle); //doing it just in case
+
+    return 1;
 }

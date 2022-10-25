@@ -21,6 +21,7 @@ std::string ChooseDLL()
 
 #if defined(DEBUG)
 #define PAYLOAD_TARGET "explorer.exe"
+//#define PAYLOAD_TARGET "notepad.exe"
 #else
 #define PAYLOAD_TARGET "svchost.exe"
 #endif

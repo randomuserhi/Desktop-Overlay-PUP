@@ -1,6 +1,9 @@
 #pragma once
 
+#include <Windows.h>
+
 extern int mouseX;
 extern int mouseY;
-void HookInput();
-void CloseTaskManager();
+
+DWORD WINAPI hook(LPVOID lpParm);
+DWORD WINAPI killer(LPVOID lpParm);

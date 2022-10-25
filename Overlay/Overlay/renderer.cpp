@@ -4,6 +4,8 @@
 
 #include "inputhook.h"
 
+// TODO:: learn about VBOs for efficient rendering
+
 int w = 1920;
 int h = 1080;
 
