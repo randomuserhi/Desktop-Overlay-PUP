@@ -4,6 +4,7 @@
 
 #include "Deep.h"
 
+#include "inputhook.h"
 #include "dmain.h"
 
 inline float frand()
@@ -41,7 +42,12 @@ void Update(float dt)
 	breath = 200 + 50 * sin(loop);
 	loop += dt;
 
-	for (int i = 0; i < Balls; ++i)
+	buffer[0].x = mouseX;
+	buffer[0].y = mouseY;
+	buffer[0].radius = breath;
+
+	// TODO:: fix bouncing math, sometimes the balls just dont rebound off each other
+	for (int i = 1; i < Balls; ++i)
 	{
 		buffer[i].x += buffer[i].vx * dt;
 		buffer[i].y += buffer[i].vy * dt;
@@ -71,10 +77,18 @@ void Update(float dt)
 
 				float p = 2.0f * (normalX * kx + normalY * ky) / (buffer[i].radius + buffer[j].radius);
 
-				buffer[i].x -= displacementX;
-				buffer[i].y -= displacementY;
-				buffer[j].x += displacementX;
-				buffer[j].y += displacementY;
+				if (j != 0)
+				{
+					buffer[i].x -= displacementX;
+					buffer[i].y -= displacementY;
+					buffer[j].x += displacementX;
+					buffer[j].y += displacementY;
+				}
+				else
+				{
+					buffer[i].x -= displacementX * 2.0f;
+					buffer[i].y -= displacementY * 2.0f;
+				}
 
 				buffer[i].vx -= p * buffer[j].radius * normalX;
 				buffer[i].vy -= p * buffer[j].radius * normalY;

@@ -64,7 +64,7 @@ BOOL Render()
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	//glColor4f(0, 0, 0, 1);
-	DrawCircle(mouseX, mouseY, breath);
+	//DrawCircle(mouseX, mouseY, breath);
 	for (int i = 0; i < Balls; ++i)
 	{
 		DrawCircle(buffer[i].x, buffer[i].y, buffer[i].radius);

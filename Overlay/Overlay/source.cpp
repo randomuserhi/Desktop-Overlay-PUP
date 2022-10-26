@@ -133,6 +133,10 @@ void EndProcess()
     SendMessage(windowHandle, WM_DESTROY, NULL, NULL);
 }
 
+//TODO:: hooks for specific full screen games:
+//    :: Either hook into d3d11 to render overlay like overwolf / geforce / porofessor overlays or hook into the program and turn their windows to fullscreen borderless windows
+//    :: Both approaches come with their own problems
+
 int main()
 {
     running = TRUE;
@@ -193,11 +197,6 @@ int main()
     resizeSC(0, 1, w, h);
 
     MSG messages;
-    while (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE)) // clear message queue
-    {
-        TranslateMessage(&messages);
-        DispatchMessage(&messages);
-    }
 
     /*mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, 65535, 0, 0, 0);
     Sleep(1);
@@ -212,29 +211,28 @@ int main()
     while (true)
     {
 #include "Deep_Debug_Memory_Undef.h"
-        if (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE))
+        while (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE))
         {
             TranslateMessage(&messages);
             DispatchMessage(&messages);
         }
 #include "Deep_Debug_Memory_Def.h"
-        else
+
+        if (running)
         {
-            if (running)
-            {
-                auto now = std::chrono::high_resolution_clock::now();
-                float dt = std::chrono::duration<float, std::milli>(now - prev).count() / 1000.0f;
-                prev = now;
+            auto now = std::chrono::high_resolution_clock::now();
+            float dt = std::chrono::duration<float, std::milli>(now - prev).count() / 1000.0f;
+            prev = now;
 
-                //std::cout << dt << "ms" << std::endl;
-                Update(dt);
-                Render();
+            //std::cout << dt << "ms" << std::endl;
+            Update(dt);
+            Render();
 
-                SwapBuffers(hdc);
-            }
+            SwapBuffers(hdc);
 
             Sleep(10);
         }
+        else Sleep(200); // Delay to prevent CPU usage (should look into locks and mutexes to properly perform this)
     }
 
     //Deep::PrintAllocationMap();
